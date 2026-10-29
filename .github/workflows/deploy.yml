@@ -3,6 +3,48 @@ name: Build and Deploy BezBarier
 on:
   push:
     branches: [ "master" ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BACKEND: ghcr.io/${{ github.repository_owner }}/bezbarier-backend
+  IMAGE_FRONTEND: ghcr.io/${{ github.repository_owner }}/bezbarier-frontend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lowercase image names
+        id: strings
+        run: |
+          echo "backend=$(echo "${{ env.IMAGE_BACKEND }}" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+          echo "frontend=$(echo "${{ env.IMAGE_FRONTEND }}" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.strings.outputs.backend }}:latest
+name: Build and Deploy BezBarier
+
+on:
+  push:
+    branches: [ "master" ]
 
 env:
   REGISTRY: ghcr.io
@@ -42,6 +84,26 @@ jobs:
 
       - name: Build & Push Frontend
         uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ steps.strings.outputs.frontend }}:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+
+    steps:
+      - name: Deploy to Docker
+        run: |
+          cd /opt/bezbarier
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker compose pull backend frontend
+          docker compose up -d --remove-orphans
+          docker image prune -f
+
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           push: true
