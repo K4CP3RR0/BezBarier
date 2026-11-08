@@ -1,4 +1,6 @@
-const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+/** Server runtime (Docker) first; NEXT_PUBLIC is baked in at build for client. */
+const baseUrl =
+  process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL;
 
 export type DbHealth = {
   ok: true;
@@ -7,7 +9,7 @@ export type DbHealth = {
 
 export function getApiBaseUrl(): string {
   if (!baseUrl) {
-    throw new Error("NEXT_PUBLIC_API_URL is not set");
+    throw new Error("API_URL or NEXT_PUBLIC_API_URL is not set");
   }
   return baseUrl.replace(/\/$/, "");
 }

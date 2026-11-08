@@ -47,6 +47,8 @@ jobs:
           context: ./frontend
           push: true
           tags: ${{ steps.strings.outputs.frontend }}:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://bezbarier-backend.kacpercichorski.tech
 
   deploy:
     needs: build-and-push
