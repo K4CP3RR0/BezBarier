@@ -1,4 +1,9 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import {
+  ApiStatus,
+  ApiStatusFallback,
+} from "@/components/landing/api-status";
 
 export function SiteFooter() {
   return (
@@ -10,6 +15,9 @@ export function SiteFooter() {
         <p className="text-sm text-muted-foreground">
           Platforma nawigacji miejskiej i audytu barier · MVP
         </p>
+        <Suspense fallback={<ApiStatusFallback />}>
+          <ApiStatus />
+        </Suspense>
         <Link
           href="#main"
           className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
