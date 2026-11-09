@@ -20,6 +20,7 @@ import * as schema from './schema.js';
           user: config.getOrThrow<string>('DATABASE_USER'),
           password: config.getOrThrow<string>('DATABASE_PASSWORD'),
           database: config.getOrThrow<string>('DATABASE_NAME'),
+          ssl: { rejectUnauthorized: false },
           max: 10,
         });
       },
