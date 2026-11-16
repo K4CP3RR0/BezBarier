@@ -5,8 +5,8 @@
 - `frontend/` — Next.js 16, React 19, Tailwind, pnpm
 - `backend/` — NestJS 12 (ESM), pnpm
 - DB — PostgreSQL + PostGIS na osobnym serwerze (`192.168.2.205`)
-- Auth (plan) — Better Auth (tabele w schemacie DBML)
-- ORM — jeszcze nie ma; jest tylko `pg` Pool. Drizzle/Prisma = do zrobienia
+- Auth (plan) — Better Auth (tabele w schemacie DBML / Drizzle)
+- ORM — Drizzle (`backend/src/database/schema*`, migracje w `backend/drizzle/`)
 
 > Next.js 16: przed zmianami w `frontend/` przeczytaj lokalne guide’y w `frontend/node_modules/next/dist/docs/` oraz `frontend/AGENTS.md` (auto-generowane reguły Next).
 
@@ -21,17 +21,21 @@
 ## Co już działa
 
 - Backend łączy się z Postgresem przez env: `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME`
-- Moduł: `backend/src/database/` (`DatabaseModule`, `DatabaseService`, pool)
+- Moduł: `backend/src/database/` (`DatabaseModule`, `DatabaseService`, `pg` Pool + Drizzle)
+- Schema Drizzle z DBML (Better Auth + domena, `geography(Point,4326)`, indeksy GIST / partial UNIQUE / CHECK)
+- Migracja: `backend/drizzle/0000_init_bezbarier_schema.sql` — lokalnie: `pnpm db:migrate` (Twingate ON)
 - Health: `GET /health/db` → `{ ok, postgis }`
+- Front: `lib/api.ts` + status DB w stopce landingu
 - Konto DB: `bezbarier_app` (nie superuser), baza `bezbarier`, extension PostGIS wgrany
 - Lokalnego Dockera z PostGIS **nie wymagamy** (problemy WSL) — dev łączy się do tej samej bazy przez Twingate
 
 ## Czego NIE ma (kolejna robota)
 
-1. **Next ↔ Nest** — NIE spięte. Jest tylko `frontend/.env.local` z `NEXT_PUBLIC_API_URL=http://localhost:4000`; kod tego nie używa. Na prodzie: URL backendu + CORS w Nest pod domenę frontu.
-2. **Drizzle (lub inny ORM) + migracje** ze schematu
-3. **Schemat domenowy / Better Auth w DB** — tabele jeszcze nie z migracji w repo
-4. **Realne endpointy API** (bariery, auth, itd.)
+1. **CORS w Nest** (prod front + localhost) + prod `NEXT_PUBLIC_API_URL` bake przy buildzie
+2. **Seed** — `roles`, `barrier_categories`, `barrier_statuses` (+ aplikacja migracji na DB)
+3. **API MVP** — bariery / zgłoszenia / weryfikacje
+4. **Better Auth** (logika; tabele już w migracji Drizzle)
+5. **UI poza landingiem** (mapa/lista przez `lib/api.ts`)
 
 ## Schemat bazy
 
