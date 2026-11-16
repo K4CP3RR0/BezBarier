@@ -13,10 +13,10 @@ Aplikacja do zgłaszania i weryfikacji barier dostępności (mapa, lokalizacja P
 | Część | Tech |
 | --- | --- |
 | `frontend/` | Next.js 16, React 19, Tailwind, pnpm |
-| `backend/` | NestJS 12 (ESM), `pg` Pool, pnpm |
+| `backend/` | NestJS 12 (ESM), `pg` Pool + Drizzle, pnpm |
 | Baza | PostgreSQL + PostGIS (`192.168.2.205`, dostęp przez Twingate) |
-| Auth (plan) | Better Auth |
-| ORM | jeszcze brak — Docelowo Drizzle |
+| Auth (plan) | Better Auth (tabele w migracji) |
+| ORM | Drizzle (`backend/drizzle/`) |
 
 ## Struktura repo
 
@@ -58,6 +58,13 @@ DATABASE_NAME=bezbarier
 
 **Twingate musi być włączony** przed startem Nesta.
 
+Migracje (schema z DBML):
+
+```bash
+pnpm db:generate   # po zmianie schema TS
+pnpm db:migrate    # aplikuje SQL z backend/drizzle/
+```
+
 Health check: `GET http://localhost:4000/health/db` → `{ ok, postgis }`
 
 ## Setup — frontend
@@ -74,22 +81,24 @@ Opcjonalnie `frontend/.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
-> Front i backend **nie są jeszcze spięte** w kodzie — zmienna jest przygotowana pod kolejne prace. Na produkcji trzeba ustawić URL API oraz CORS w Nest pod domenę frontu.
+> Landing już woła `GET /health/db` przez `lib/api.ts`. Na produkcji: bake `NEXT_PUBLIC_API_URL` + CORS w Nest pod domenę frontu.
 
 ## Stan projektu
 
 **Działa**
 
-- Połączenie Nest → Postgres (`DATABASE_*`)
-- Moduł `backend/src/database/`
+- Połączenie Nest → Postgres (`DATABASE_*`) + Drizzle
+- Schema/migracja z DBML (Better Auth + domena, PostGIS geography)
 - `GET /health/db` + PostGIS na koncie `bezbarier_app` / baza `bezbarier`
+- Front: status API/DB w stopce landingu
 
 **Do zrobienia**
 
-- Integracja Next ↔ Nest (CORS, `NEXT_PUBLIC_API_URL` na prod)
-- ORM + migracje ze schematu DBML
-- Tabele Better Auth + domena w DB z migracji w repo
+- Seed (`roles`, `barrier_categories`, `barrier_statuses`) + `db:migrate` na wspólnej DB
+- CORS + prod API URL
 - Endpointy API (bariery, auth, …)
+- Better Auth (logika)
+- UI mapa/lista
 
 ## Schemat bazy (skrót)
 
