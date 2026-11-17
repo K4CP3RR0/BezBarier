@@ -14,7 +14,9 @@ function resolveCorsOrigins(): string[] {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false, // wymagane przez Better Auth
+  });
 
   app.enableCors({
     origin: resolveCorsOrigins(),

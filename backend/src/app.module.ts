@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from '@thallesp/nestjs-better-auth';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { auth } from './auth/auth.js';
 import { BarriersModule } from './barriers/barriers.module.js';
 import { DatabaseModule } from './database/database.module.js';
 
@@ -10,6 +12,11 @@ import { DatabaseModule } from './database/database.module.js';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    AuthModule.forRoot({
+      auth,
+      disableGlobalAuthGuard: true,
+      disableTrustedOriginsCors: true,
     }),
     DatabaseModule,
     BarriersModule,
