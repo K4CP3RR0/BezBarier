@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { BarriersModule } from './barriers/barriers.module.js';
 import { DatabaseModule } from './database/database.module.js';
 
 @Module({
@@ -11,6 +12,7 @@ import { DatabaseModule } from './database/database.module.js';
       envFilePath: '.env',
     }),
     DatabaseModule,
+    BarriersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
