@@ -23,10 +23,10 @@ export function SiteHeader() {
           </Button>
           <Button
             size="lg"
-            render={<Link href="/onboarding" />}
+            render={<Link href="/mapa" />}
             nativeButton={false}
           >
-            Zacznij
+            Mapa
           </Button>
         </nav>
       </div>
