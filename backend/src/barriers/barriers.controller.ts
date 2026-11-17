@@ -2,11 +2,16 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   Param,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import {
+  AuthGuard,
+  Session,
+  type UserSession,
+} from '@thallesp/nestjs-better-auth';
 import { BarriersService } from './barriers.service.js';
 
 @Controller()
@@ -42,8 +47,9 @@ export class BarriersController {
   }
 
   @Post('barriers')
+  @UseGuards(AuthGuard)
   create(
-    @Headers('x-user-id') userId: string | undefined,
+    @Session() session: UserSession,
     @Body()
     body: {
       categoryCode: string;
@@ -56,7 +62,10 @@ export class BarriersController {
       gpsAccuracyM?: number | null;
     },
   ) {
-    return this.barriers.create({ ...body, userId: userId ?? '' });
+    return this.barriers.create({
+      ...body,
+      userId: session.user.id,
+    });
   }
 
   @Get('barriers/:id/verifications')
@@ -65,9 +74,10 @@ export class BarriersController {
   }
 
   @Post('barriers/:id/verifications')
+  @UseGuards(AuthGuard)
   createVerification(
     @Param('id') id: string,
-    @Headers('x-user-id') userId: string | undefined,
+    @Session() session: UserSession,
     @Body()
     body: {
       action: 'CONFIRM' | 'DENY' | 'RESOLVED';
@@ -77,7 +87,7 @@ export class BarriersController {
   ) {
     return this.barriers.createVerification({
       barrierId: id,
-      userId: userId ?? '',
+      userId: session.user.id,
       ...body,
     });
   }
