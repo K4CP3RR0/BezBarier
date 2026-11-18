@@ -5,5 +5,6 @@ import { BarriersService } from './barriers.service.js';
 @Module({
   controllers: [BarriersController],
   providers: [BarriersService],
+  exports: [BarriersService],
 })
 export class BarriersModule {}

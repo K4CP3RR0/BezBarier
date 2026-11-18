@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { DRIZZLE } from '../database/database.constants.js';
 import type { DrizzleDb } from '../database/database.types.js';
 import {
@@ -34,6 +34,8 @@ export type CreateVerificationInput = {
   note?: string | null;
   photoStorageKey?: string | null;
 };
+
+const DUPLICATE_RADIUS_METERS = 10;
 
 @Injectable()
 export class BarriersService {
@@ -129,7 +131,7 @@ export class BarriersService {
       throw new BadRequestException('description is required');
     }
     if (!userId) {
-      throw new BadRequestException('x-user-id header is required');
+      throw new BadRequestException('Authentication required');
     }
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
       throw new BadRequestException('lat and lng are required numbers');
@@ -164,7 +166,7 @@ export class BarriersService {
         AND ST_DWithin(
           location,
           ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
-          10
+          ${DUPLICATE_RADIUS_METERS}
         )
       LIMIT 1
     `);
@@ -207,7 +209,7 @@ export class BarriersService {
       input;
 
     if (!userId) {
-      throw new BadRequestException('x-user-id header is required');
+      throw new BadRequestException('Authentication required');
     }
 
     await this.getById(barrierId);
@@ -254,6 +256,23 @@ export class BarriersService {
             .set({
               statusId: resolved.id,
               deactivatedAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(barriers.id, barrierId));
+        }
+      }
+
+      if (action === 'DENY') {
+        const [disputed] = await this.db
+          .select()
+          .from(barrierStatuses)
+          .where(eq(barrierStatuses.code, 'DISPUTED'))
+          .limit(1);
+        if (disputed) {
+          await this.db
+            .update(barriers)
+            .set({
+              statusId: disputed.id,
               updatedAt: new Date(),
             })
             .where(eq(barriers.id, barrierId));

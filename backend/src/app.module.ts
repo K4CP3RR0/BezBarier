@@ -6,6 +6,8 @@ import { AppService } from './app.service.js';
 import { auth } from './auth/auth.js';
 import { BarriersModule } from './barriers/barriers.module.js';
 import { DatabaseModule } from './database/database.module.js';
+import { UploadsModule } from './uploads/uploads.module.js';
+import { VoiceNotesModule } from './voice-notes/voice-notes.module.js';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { DatabaseModule } from './database/database.module.js';
     }),
     DatabaseModule,
     BarriersModule,
+    UploadsModule,
+    VoiceNotesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

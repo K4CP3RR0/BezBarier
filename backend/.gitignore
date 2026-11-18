@@ -49,6 +49,10 @@ lerna-debug.log*
 .temp
 .tmp
 
+# local file uploads (MVP storage)
+/storage
+
+
 # Runtime data
 pids
 *.pid
