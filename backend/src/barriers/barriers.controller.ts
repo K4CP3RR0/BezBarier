@@ -13,6 +13,8 @@ import {
   type UserSession,
 } from '@thallesp/nestjs-better-auth';
 import { BarriersService } from './barriers.service.js';
+import { CreateBarrierDto } from './dto/create-barrier.dto.js';
+import { CreateVerificationDto } from './dto/create-verification.dto.js';
 
 @Controller()
 export class BarriersController {
@@ -50,17 +52,7 @@ export class BarriersController {
   @UseGuards(AuthGuard)
   create(
     @Session() session: UserSession,
-    @Body()
-    body: {
-      categoryCode: string;
-      description: string;
-      lat: number;
-      lng: number;
-      source?: 'VOICE' | 'MANUAL' | 'PHOTO';
-      isTemporary?: boolean;
-      expiresAt?: string | null;
-      gpsAccuracyM?: number | null;
-    },
+    @Body() body: CreateBarrierDto,
   ) {
     return this.barriers.create({
       ...body,
@@ -78,12 +70,7 @@ export class BarriersController {
   createVerification(
     @Param('id') id: string,
     @Session() session: UserSession,
-    @Body()
-    body: {
-      action: 'CONFIRM' | 'DENY' | 'RESOLVED';
-      note?: string | null;
-      photoStorageKey?: string | null;
-    },
+    @Body() body: CreateVerificationDto,
   ) {
     return this.barriers.createVerification({
       barrierId: id,
