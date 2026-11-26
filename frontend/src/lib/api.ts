@@ -194,3 +194,34 @@ export async function uploadFile(
     body,
   });
 }
+
+export type AppRole = {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+};
+
+export type MyRole = {
+  roleId: string;
+  code: string;
+  name: string;
+  description: string | null;
+  isPrimary: boolean;
+  assignedAt: string;
+};
+
+export async function getRoles(): Promise<AppRole[]> {
+  return apiFetch<AppRole[]>("/meta/roles");
+}
+
+export async function getMyRoles(): Promise<MyRole[]> {
+  return apiFetch<MyRole[]>("/me/roles");
+}
+
+export async function setPrimaryRole(roleCode: string): Promise<MyRole[]> {
+  return apiFetch<MyRole[]>("/me/roles/primary", {
+    method: "PUT",
+    body: JSON.stringify({ roleCode }),
+  });
+}

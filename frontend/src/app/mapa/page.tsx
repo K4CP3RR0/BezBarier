@@ -1,5 +1,6 @@
 "use client";
 
+import { RequireAuth } from "@/require-auth";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -193,6 +194,10 @@ export default function MapaPage() {
   }
 
   return (
+    <RequireAuth>
+      {/* ...dotychczasowy <main>...</main>... */}
+    </RequireAuth>
+  );
     <main className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-6 py-10">
       <div className="flex items-center justify-between gap-4">
         <Link href="/" className="font-heading text-lg font-semibold">
@@ -200,18 +205,27 @@ export default function MapaPage() {
         </Link>
         <div className="flex items-center gap-2">
           {session?.user ? (
-            <p className="text-sm text-muted-foreground">{session.user.email}</p>
-          ) : (
-            <Button
-              size="lg"
-              render={<Link href="/logowanie" />}
-              nativeButton={false}
-            >
-              Zaloguj
-            </Button>
-          )}
+            <>
+              <Link
+                href="/profil"
+                className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+              >
+                {session.user.email}
+              </Link>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  await authClient.signOut();
+                  window.location.href = "/logowanie";
+                }}
+              >
+                Wyloguj
+              </Button>
+            </>
+          ) : null}
         </div>
-      </div>
 
       <h1 className="mt-10 font-heading text-3xl font-semibold tracking-tight">
         Bariery w okolicy
