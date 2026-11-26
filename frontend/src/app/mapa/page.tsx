@@ -1,5 +1,8 @@
 "use client";
 
+
+import { BarriersMapDynamic } from "@/components/map/barriers-map-dynamic";
+import { StatusLine } from "@/components/ui/status-line";
 import { RequireAuth } from "@/require-auth";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -38,6 +41,7 @@ export default function MapaPage() {
   const [voiceTextById, setVoiceTextById] = useState<Record<string, string>>(
     {},
   );
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   async function refreshBarriers(lat: number, lng: number) {
     const rows = await getNearbyBarriers(lat, lng, 1000);
@@ -195,9 +199,6 @@ export default function MapaPage() {
 
   return (
     <RequireAuth>
-      {/* ...dotychczasowy <main>...</main>... */}
-    </RequireAuth>
-  );
     <main className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-6 py-10">
       <div className="flex items-center justify-between gap-4">
         <Link href="/" className="font-heading text-lg font-semibold">
@@ -225,6 +226,7 @@ export default function MapaPage() {
               </Button>
             </>
           ) : null}
+          </div>
         </div>
 
       <h1 className="mt-10 font-heading text-3xl font-semibold tracking-tight">
@@ -239,6 +241,27 @@ export default function MapaPage() {
           Twoja pozycja: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
         </p>
       ) : null}
+
+      <div className="mt-6">
+        <StatusLine
+          loading={loading && !coords}
+          error={
+            !coords && error
+              ? error
+              : !loading && !coords
+                ? "Brak lokalizacji — mapa niedostępna"
+                : null
+          }
+        />
+        {coords ? (
+          <BarriersMapDynamic
+            lat={coords.lat}
+            lng={coords.lng}
+            barriers={barriers}
+            onSelect={setSelectedId}
+          />
+        ) : null}
+      </div>
 
       <section className="mt-8 border-t border-border/80 pt-6">
         <h2 className="font-heading text-xl font-semibold">Zgłoś barierę</h2>
@@ -291,20 +314,28 @@ export default function MapaPage() {
         )}
       </section>
 
-      {loading ? (
-        <p className="mt-8 text-sm text-muted-foreground">Ładowanie…</p>
-      ) : null}
-      {error ? <p className="mt-8 text-sm text-destructive">{error}</p> : null}
+      <div className="mt-8">
+        <StatusLine
+          loading={loading}
+          error={error}
+          empty={
+            !loading && !error && barriers.length === 0
+              ? "Brak barier w promieniu 1 km (albo pusta baza)."
+              : null
+          }
+        />
+      </div>
 
-      {!loading ? (
+      {!loading && barriers.length > 0 ? (
         <ul className="mt-8 flex flex-col gap-8">
-          {barriers.length === 0 ? (
-            <li className="text-sm text-muted-foreground">
-              Brak barier w promieniu 1 km (albo pusta baza).
-            </li>
-          ) : (
-            barriers.map((b) => (
-              <li key={b.id} className="border-t border-border/80 pt-4">
+          {barriers.map((b) => (
+              <li
+                id={`barrier-${b.id}`}
+                key={b.id}
+                className={`border-t border-border/80 pt-4 ${
+                  selectedId === b.id ? "bg-secondary/40 px-3" : ""
+                }`}
+              >
                 <p className="font-heading text-lg font-semibold">
                   {b.category_name}
                 </p>
@@ -386,10 +417,10 @@ export default function MapaPage() {
                   </div>
                 ) : null}
               </li>
-            ))
-          )}
+          ))}
         </ul>
       ) : null}
-    </main>
-  );
-}
+        </main>
+        </RequireAuth>
+      );
+    }
