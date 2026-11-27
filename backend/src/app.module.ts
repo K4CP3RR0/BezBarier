@@ -8,6 +8,7 @@ import { BarriersModule } from './barriers/barriers.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { UploadsModule } from './uploads/uploads.module.js';
 import { VoiceNotesModule } from './voice-notes/voice-notes.module.js';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { VoiceNotesModule } from './voice-notes/voice-notes.module.js';
     }),
     DatabaseModule,
     BarriersModule,
+    UsersModule,
     UploadsModule,
     VoiceNotesModule,
   ],

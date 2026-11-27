@@ -23,6 +23,11 @@ const trustedOrigins = (
   .map((o) => o.trim())
   .filter(Boolean);
 
+/** MVP: bez SMTP — linki lecą do logów Nest. Potem podmienisz na Resend/Mailgun. */
+function logAuthEmail(kind: string, to: string, url: string) {
+  console.log(`[auth-email:${kind}] to=${to} url=${url}`);
+}
+
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
   secret: process.env.BETTER_AUTH_SECRET,
@@ -38,6 +43,16 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async ({ user, url }) => {
+      logAuthEmail('reset-password', user.email, url);
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      logAuthEmail('verify-email', user.email, url);
+    },
   },
 });
 
