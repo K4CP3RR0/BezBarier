@@ -15,7 +15,7 @@ Aplikacja do zgłaszania i weryfikacji barier dostępności (mapa, lokalizacja P
 | `frontend/` | Next.js 16, React 19, Tailwind, pnpm |
 | `backend/` | NestJS 12 (ESM), `pg` Pool + Drizzle, pnpm |
 | Baza | PostgreSQL + PostGIS (`192.168.2.205`, dostęp przez Twingate) |
-| Auth (plan) | Better Auth (tabele w migracji) |
+| Auth | Better Auth (Nest + front) |
 | ORM | Drizzle (`backend/drizzle/`) |
 
 ## Struktura repo
@@ -40,12 +40,11 @@ BezBarier/
 
 ```bash
 cd backend
-cp .env.example .env   # uzupełnij DATABASE_PASSWORD
+cp .env.example .env   # uzupełnij DATABASE_PASSWORD i BETTER_AUTH_SECRET
 pnpm install
-pnpm run start:dev
 ```
 
-`backend/.env`:
+`backend/.env` (wzór — prawdziwe hasła tylko lokalnie, nie commituj):
 
 ```env
 PORT=4000
@@ -54,15 +53,36 @@ DATABASE_PORT=5432
 DATABASE_USER=bezbarier_app
 DATABASE_PASSWORD=
 DATABASE_NAME=bezbarier
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:4000
+CORS_ORIGINS=http://localhost:3000,https://bezbarier.kacpercichorski.tech
+STORAGE_DIR=./storage
 ```
 
 **Twingate musi być włączony** przed startem Nesta.
 
-Migracje (schema z DBML):
+### Migracja + seed (kolejność)
+
+Konto `bezbarier_app` musi mieć `CREATE` na bazie oraz prawa do tabel (`SELECT/INSERT/UPDATE/DELETE`).
 
 ```bash
-pnpm db:generate   # po zmianie schema TS
-pnpm db:migrate    # aplikuje SQL z backend/drizzle/
+cd backend
+pnpm db:migrate
+pnpm db:seed
+pnpm run start:dev
+```
+
+### Happy path e2e (opcjonalnie)
+
+Backend musi działać lokalnie:
+
+```bash
+# terminal 1
+pnpm start
+
+# terminal 2 (PowerShell)
+$env:E2E_LIVE="1"
+pnpm test:e2e -- test/happy-path.e2e-spec.ts
 ```
 
 Health check: `GET http://localhost:4000/health/db` → `{ ok, postgis }`
@@ -75,30 +95,28 @@ pnpm install
 pnpm dev
 ```
 
-Opcjonalnie `frontend/.env.local`:
+`frontend/.env.local`:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
 ```
 
-> Landing już woła `GET /health/db` przez `lib/api.ts`. Na produkcji: bake `NEXT_PUBLIC_API_URL` + CORS w Nest pod domenę frontu.
+> Landing woła `GET /health/db` przez `lib/api.ts`. Na produkcji: bake `NEXT_PUBLIC_API_URL` + CORS w Nest pod domenę frontu.
 
 ## Stan projektu
 
 **Działa**
 
-- Połączenie Nest → Postgres (`DATABASE_*`) + Drizzle
-- Schema/migracja z DBML (Better Auth + domena, PostGIS geography)
-- `GET /health/db` + PostGIS na koncie `bezbarier_app` / baza `bezbarier`
-- Front: status API/DB w stopce landingu
+- Nest + Drizzle + migracje/seed
+- Better Auth (signup/login; maile reset/verify w logach Nest — bez SMTP)
+- API barier / weryfikacji / uploadów / voice notes / ról
+- Front: `/logowanie`, `/mapa` (Leaflet + lista), `/profil`, RequireAuth
 
 **Do zrobienia**
 
-- Seed (`roles`, `barrier_categories`, `barrier_statuses`) + `db:migrate` na wspólnej DB
-- CORS + prod API URL
-- Endpointy API (bariery, auth, …)
-- Better Auth (logika)
-- UI mapa/lista
+- SMTP (prawdziwy mail reset/verify)
+- E2E w CI (teraz tylko `E2E_LIVE=1` lokalnie)
+- Nawigacja tras / bogatszy UX mapy
 
 ## Schemat bazy (skrót)
 

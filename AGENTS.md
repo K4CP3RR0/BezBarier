@@ -20,22 +20,28 @@
 
 ## Co już działa
 
-- Backend łączy się z Postgresem przez env: `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_NAME`
-- Moduł: `backend/src/database/` (`DatabaseModule`, `DatabaseService`, `pg` Pool + Drizzle)
-- Schema Drizzle z DBML (Better Auth + domena, `geography(Point,4326)`, indeksy GIST / partial UNIQUE / CHECK)
-- Migracja: `backend/drizzle/0000_init_bezbarier_schema.sql` — lokalnie: `pnpm db:migrate` (Twingate ON)
-- Health: `GET /health/db` → `{ ok, postgis }`
-- Front: `lib/api.ts` + status DB w stopce landingu
-- Konto DB: `bezbarier_app` (nie superuser), baza `bezbarier`, extension PostGIS wgrany
-- Lokalnego Dockera z PostGIS **nie wymagamy** (problemy WSL) — dev łączy się do tej samej bazy przez Twingate
+- Backend → Postgres (`DATABASE_*`) + Drizzle + SSL self-signed
+- Migracje: `backend/drizzle/` → `pnpm db:migrate` (Twingate ON; konto musi mieć `CREATE` na DB)
+- Seed: `pnpm db:seed` → `roles`, `barrier_categories`, `barrier_statuses`
+- Health: `GET /health/db`
+- CORS: `CORS_ORIGINS` (domyślnie localhost:3000 + prod front)
+- Better Auth: `/api/auth/*` (email/password; reset/verify = logi Nest bez SMTP)
+- API: bariery, weryfikacje, uploady, voice notes, `GET/PUT` role użytkownika
+- Front: landing, `/logowanie`, `/mapa` (Leaflet + lista), `/profil`, RequireAuth
 
-## Czego NIE ma (kolejna robota)
+## Kolejność setupu DB
 
-1. **CORS w Nest** (prod front + localhost) + prod `NEXT_PUBLIC_API_URL` bake przy buildzie
-2. **Seed** — `roles`, `barrier_categories`, `barrier_statuses` (+ aplikacja migracji na DB)
-3. **API MVP** — bariery / zgłoszenia / weryfikacje
-4. **Better Auth** (logika; tabele już w migracji Drizzle)
-5. **UI poza landingiem** (mapa/lista przez `lib/api.ts`)
+1. Twingate ON + auth do `192.168.2.205`
+2. Granty (admin DB): `GRANT CREATE ON DATABASE bezbarier TO bezbarier_app;`
+3. `cd backend && pnpm db:migrate`
+4. `pnpm db:seed`
+5. `pnpm start` + front `pnpm dev`
+
+## Czego NIE ma / słabe miejsca
+
+- SMTP produkcyjny (maile auth tylko w logach)
+- Pełne e2e w CI (jest live happy path za `E2E_LIVE=1`)
+- Mapa kafelkowa jest; routing / nawigacja tras — później
 
 ## Schemat bazy
 
@@ -57,9 +63,14 @@ DATABASE_PORT=5432
 DATABASE_USER=bezbarier_app
 DATABASE_PASSWORD=
 DATABASE_NAME=bezbarier
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:4000
+CORS_ORIGINS=http://localhost:3000,https://bezbarier.kacpercichorski.tech
+STORAGE_DIR=./storage
+
 ```
 
-Frontend (lokalnie, jeszcze nieużywane w kodzie):
+Frontend (`frontend/.env.local`):
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000
