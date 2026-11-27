@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
-export default function ResetHaslaPage() {
+function ResetHaslaContent() {
   const router = useRouter();
   const search = useSearchParams();
   const token = search.get("token") ?? "";
@@ -66,5 +66,17 @@ export default function ResetHaslaPage() {
         </form>
       )}
     </main>
+  );
+}
+
+export default function ResetHaslaPage() {
+  return (
+    <Suspense
+      fallback={
+        <p className="px-6 py-16 text-sm text-muted-foreground">Ładowanie…</p>
+      }
+    >
+      <ResetHaslaContent />
+    </Suspense>
   );
 }

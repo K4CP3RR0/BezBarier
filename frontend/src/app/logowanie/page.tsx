@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
-export default function LogowaniePage() {
+function LogowanieContent() {
   const router = useRouter();
   const search = useSearchParams();
   const next = search.get("next") || "/mapa";
@@ -169,5 +169,17 @@ export default function LogowaniePage() {
         ) : null}
       </div>
     </main>
+  );
+}
+
+export default function LogowaniePage() {
+  return (
+    <Suspense
+      fallback={
+        <p className="px-6 py-16 text-sm text-muted-foreground">Ładowanie…</p>
+      }
+    >
+      <LogowanieContent />
+    </Suspense>
   );
 }

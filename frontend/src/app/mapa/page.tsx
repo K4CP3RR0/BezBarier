@@ -5,7 +5,7 @@ import { BarriersMapDynamic } from "@/components/map/barriers-map-dynamic";
 import { StatusLine } from "@/components/ui/status-line";
 import { RequireAuth } from "@/require-auth";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -21,6 +21,20 @@ import {
 } from "@/lib/api";
 
 export default function MapaPage() {
+  return (
+    <Suspense
+      fallback={
+        <p className="px-6 py-16 text-sm text-muted-foreground">
+          Sprawdzam sesję…
+        </p>
+      }
+    >
+      <MapaContent />
+    </Suspense>
+  );
+}
+
+function MapaContent() {
   const { data: session } = authClient.useSession();
   const [barriers, setBarriers] = useState<BarrierNearby[]>([]);
   const [categories, setCategories] = useState<BarrierCategory[]>([]);

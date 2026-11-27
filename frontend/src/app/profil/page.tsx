@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RequireAuth } from "@/require-auth";
 import { authClient } from "@/lib/auth-client";
@@ -15,9 +15,17 @@ import {
 
 export default function ProfilPage() {
   return (
-    <RequireAuth>
-      <ProfilInner />
-    </RequireAuth>
+    <Suspense
+      fallback={
+        <p className="px-6 py-16 text-sm text-muted-foreground">
+          Sprawdzam sesję…
+        </p>
+      }
+    >
+      <RequireAuth>
+        <ProfilInner />
+      </RequireAuth>
+    </Suspense>
   );
 }
 
